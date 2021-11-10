@@ -1,0 +1,74 @@
+name: "Get artifact from GCS"
+description: "Uses main-quest/actions.gsutil"
+inputs:
+  key:
+    description: "Service account json key, base64 encrypted or not"
+    required: true
+  bucket:
+    description: "Leave empty to use the implicit 'gh_<org-repo>_runs'. Note that the bucket must already exist, and names can be up to 63 chars (as per GCS documentation)"
+    required: false
+  name:
+    description: "Artifact name. Artifacts are stored in folders under <bucket>/run-<run-id>/<artifact-name>/"
+    required: true
+  path:
+    description: "Destination. If it ends with a '/', a directory will be created if it doesn't already exist. If not specified, it'll download to the current directory"
+    required: false
+    default: "./"
+  unzip:
+    description: "Unzip all zip files found in the destination. Note that this is just a post-download step, and no files are removed (only replaced, in case archives contain multiple files with same relative paths)"
+    required: false
+    default: false
+    
+runs:
+  using: "composite"
+  steps:  
+      - name: Get bucket name
+        id: bucket_namer
+        shell: bash
+        run: |
+          b="${{ inputs.bucket }}"
+          if [ -z "$b" ]; then
+            repo_no_slashes="${{ github.repository }}"
+            repo_no_slashes= echo "$repo_no_slashes" | sed "s/\//-/g"
+            b="gh_$repo_no_slashes_runs";
+            echo Using $b as implicit bucket name
+          fi
+          echo ::set-output name=value::$b
+
+      - name: "Make dirs if they don't exist"
+        run: 
+          d="${{ inputs.path }}"
+          
+          # Check for asterisks in path, as per https://stackoverflow.com/a/1193682
+          echo "Making sure the destination dirs exist"
+          if echo x"$d" | grep '*' > /dev/null; then
+              echo "Destination contains asterisks. Not proceeding with folder auto-creation, just to be safe. If the folder doesn't exist, make sure you create it beforehand"
+          else
+            # Double brackets to allow * as regex
+            if [[ $d == */ ]]; then
+              echo "Destination ends with '/' - creating folder if doesn't exist"
+              mkdir -p "$d"
+            else
+              if [[ $d == *. ]]; then
+                echo "Destination ends with dots. Not proceeding with folder auto-creation, just to be safe. If the folder doesn't exist, make sure you create it beforehand"
+              else
+                pd=$(dirname "$d")
+                if [[ $pd == *. ]]; then
+                  echo "Destination parent dir ends with dots. Not proceeding with folder auto-creation, just to be safe. If the folder doesn't exist, make sure you create it beforehand"
+                else
+                  echo "Creating parent folder of destination if doesn't exist"
+                  mkdir -p "$pd"
+                fi
+              fi
+            fi
+          fi
+
+      - uses: main-quest/actions.gsutil@v0.0.4
+        with:
+          key: ${{ inputs.key }}
+          do: cp gs://${{ steps.bucket_namer.outputs.value }}/${{ github.run_id }}/${{ inputs.name }}/* ${{ inputs.path }}
+
+      - name: Unzip all .zip files if asked to
+        if: ${{ inputs.unzip }}
+        working-directory: ${{ inputs.path }}
+        run: unzip *.zip
