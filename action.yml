@@ -29,14 +29,14 @@ runs:
           b="${{ inputs.bucket }}"
           if [ -z "$b" ]; then
             repo_no_slashes="${{ github.repository }}"
-            repo_no_slashes= echo "$repo_no_slashes" | sed "s/\//-/g"
-            b="gh_$repo_no_slashes_runs";
-            echo Using $b as implicit bucket name
+            repo_no_slashes=$(echo "$repo_no_slashes" | sed "s/\//-/g")
+            b=gh_runs_"$repo_no_slashes"
+            echo "Using $b as implicit bucket name"
           fi
-          echo ::set-output name=value::$b
+          echo "::set-output name=value::$b"
 
       - name: "Make dirs if they don't exist"
-        run: 
+        run: |
           d="${{ inputs.path }}"
           
           # Check for asterisks in path, as per https://stackoverflow.com/a/1193682
