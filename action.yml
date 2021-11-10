@@ -75,7 +75,7 @@ runs:
           do: -m cp -r "gs://${{ steps.bucket_namer.outputs.value }}/${{ github.run_id }}/${{ inputs.name }}/*" "${{ inputs.path }}"
 
       - name: Unzip all .zip files if asked to
-        if: ${{ inputs.unzip == true }}
+        if: ${{ inputs.unzip == 'true' }}
         shell: bash
         working-directory: ${{ inputs.path }}
         run: unzip *.zip
