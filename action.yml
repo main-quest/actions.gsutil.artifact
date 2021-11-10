@@ -71,7 +71,7 @@ runs:
       - uses: main-quest/actions.gsutil@v0.0.4
         with:
           key: ${{ inputs.key }}
-          do: cp gs://${{ steps.bucket_namer.outputs.value }}/${{ github.run_id }}/${{ inputs.name }}/* ${{ inputs.path }}
+          do: -m cp -r "gs://${{ steps.bucket_namer.outputs.value }}/${{ github.run_id }}/${{ inputs.name }}/*" "${{ inputs.path }}"
 
       - name: Unzip all .zip files if asked to
         if: ${{ inputs.unzip }}
