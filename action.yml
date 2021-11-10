@@ -35,7 +35,7 @@ runs:
             b_no_slashes=$(echo "$repo" | sed "s/\//-/g")
             b_no_dots=$(echo "$b_no_slashes" | sed "s/\./-/g")
             b_lowercase=$(echo "$b_no_dots" | (tr '[:upper:]' '[:lower:]'))
-            b=gh_runs_"$b_lowercase"
+            b=gh-runs_"$b_lowercase"
             echo "Using $b as implicit bucket name"
           fi
           echo "::set-output name=value::$b"
