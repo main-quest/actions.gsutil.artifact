@@ -32,7 +32,7 @@ runs:
           b="${{ inputs.bucket }}"
           if [ -z "$b" ]; then
             repo="${{ github.repository }}"
-            b_no_slashes=$(echo "$repo" | sed "s/\//-/g")
+            b_no_slashes=$(echo "$repo" | sed "s/\//_/g")
             b_no_dots=$(echo "$b_no_slashes" | sed "s/\./-/g")
             b_lowercase=$(echo "$b_no_dots" | (tr '[:upper:]' '[:lower:]'))
             b=gh-runs_"$b_lowercase"
