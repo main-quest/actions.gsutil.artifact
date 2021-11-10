@@ -5,7 +5,7 @@ inputs:
     description: "Service account json key, base64 encrypted or not"
     required: true
   bucket:
-    description: "Leave empty to use the implicit 'gh_<org-repo>_runs'. Note that the bucket must already exist, and names can be up to 63 chars (as per GCS documentation)"
+    description: "Leave empty to use the implicit 'gh_<org-repo>_runs'. Note that the bucket must already exist, and names can be up to 63 chars (as per GCS documentation), dots and slashes are replaced by hyphens"
     required: false
   name:
     description: "Artifact name. Artifacts are stored in folders under <bucket>/run-<run-id>/<artifact-name>/"
@@ -28,9 +28,10 @@ runs:
         run: |
           b="${{ inputs.bucket }}"
           if [ -z "$b" ]; then
-            repo_no_slashes="${{ github.repository }}"
-            repo_no_slashes=$(echo "$repo_no_slashes" | sed "s/\//-/g")
-            b=gh_runs_"$repo_no_slashes"
+            repo="${{ github.repository }}"
+            repo_no_slashes=$(echo "$repo" | sed "s/\//-/g")
+            repo_no_slashes_no_dots=$(echo "$repo_no_slashes" | sed "s/\./-/g")
+            b=gh_runs_"$repo_no_slashes_no_dots"
             echo "Using $b as implicit bucket name"
           fi
           echo "::set-output name=value::$b"
