@@ -41,6 +41,7 @@ runs:
           echo "::set-output name=value::$b"
 
       - name: "Make dirs if they don't exist"
+        shell: bash
         run: |
           d="${{ inputs.path }}"
           
@@ -75,5 +76,6 @@ runs:
 
       - name: Unzip all .zip files if asked to
         if: ${{ inputs.unzip }}
+        shell: bash
         working-directory: ${{ inputs.path }}
         run: unzip *.zip
