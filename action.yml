@@ -5,7 +5,10 @@ inputs:
     description: "Service account json key, base64 encrypted or not"
     required: true
   bucket:
-    description: "Leave empty to use the implicit 'gh_<org-repo>_runs'. Note that the bucket must already exist, and names can be up to 63 chars (as per GCS documentation), dots and slashes are replaced by hyphens"
+    description: |
+      "Leave empty to use the implicit 'gh-runs_<org-name>_<repo-name>'. 
+      Note that the bucket must already exist, and names can be up to 63 chars (as per GCS documentation).
+      For the implicit bucket name, dots are replaced by hyphens, slashes are replaced by underscores. The bucket name should be lowercase. For 'My-Dear-Org/my.repo', we get 'gh-runs_my-dear-org_my-repo'"
     required: false
   name:
     description: "Artifact name. Artifacts are stored in folders under <bucket>/run-<run-id>/<artifact-name>/"
@@ -29,9 +32,10 @@ runs:
           b="${{ inputs.bucket }}"
           if [ -z "$b" ]; then
             repo="${{ github.repository }}"
-            repo_no_slashes=$(echo "$repo" | sed "s/\//-/g")
-            repo_no_slashes_no_dots=$(echo "$repo_no_slashes" | sed "s/\./-/g")
-            b=gh_runs_"$repo_no_slashes_no_dots"
+            b_no_slashes=$(echo "$repo" | sed "s/\//-/g")
+            b_no_dots=$(echo "$b_no_slashes" | sed "s/\./-/g")
+            b_lowercase=$(echo "$b_no_dots" | (tr '[:upper:]' '[:lower:]'))
+            b=gh_runs_"$b_lowercase"
             echo "Using $b as implicit bucket name"
           fi
           echo "::set-output name=value::$b"
