@@ -65,7 +65,7 @@ runs:
         id: run_id_getter
         shell: bash
         run: |
-          run_id="${{ inputs.name }}"
+          run_id="${{ inputs.run_id }}"
           if [ -z "$run_id" ]; then
             run_id="${{ github.run_id }}"
           fi
