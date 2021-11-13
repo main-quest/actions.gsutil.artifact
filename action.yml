@@ -71,7 +71,7 @@ runs:
           fi
           echo "::set-output name=value::$run_id"
 
-      - uses: main-quest/actions.gsutil@v0.0.10
+      - uses: main-quest/actions.gsutil@v0.0.11
         with:
           key: ${{ inputs.key }}
           do: -m cp -r "gs://${{ steps.bucket_name_getter.outputs.bucket_name }}/${{ steps.run_id_getter.outputs.value }}/${{ inputs.name }}/*" "${{ inputs.path }}"
