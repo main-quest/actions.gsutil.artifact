@@ -28,7 +28,7 @@ runs:
   steps:  
       - name: Get bucket name
         id: bucket_name_getter
-        uses: main-quest/actions.gsutil.artifact.bucketname@v0.0.2
+        uses: main-quest/actions.gsutil.artifact.bucketname@master
         with:
           bucket: ${{ inputs.bucket }}
 
