@@ -53,6 +53,24 @@ runs:
       #OS/
 
       #/OS
+      - name: "Convert path [UNIX]"
+        id: path_converter_unix
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          p="${{ inputs.path }}"
+          echo "::set-output name=value::$p"
+
+      - name: "Convert path [WIN]"
+        id: path_converter_win
+        if: runner.os == 'Windows'
+        shell: wsl bash --noprofile --norc -euo pipefail "$(s="$(wslpath '{0}')" && sed -i 's/\r$//' "$s" && echo "$s")"
+        run: |
+          p=$(wslpath "${{ inputs.path }}")
+          echo "::set-output name=value::$p"
+      #OS/
+
+      #/OS
       - name: "Get run id [UNIX]"
         id: run_id_getter_unix
         if: runner.os != 'Windows'
@@ -79,7 +97,7 @@ runs:
       - uses: main-quest/actions.gsutil@master
         with:
           key: ${{ inputs.key }}
-          do: -m cp -r "gs://${{ steps.bucket_name_getter.outputs.bucket_name }}/${{ steps.run_id_getter_unix.outputs.value }}${{ steps.run_id_getter_win.outputs.value }}/${{ inputs.name }}/*" "${{ inputs.path }}"
+          do: -m cp -r "gs://${{ steps.bucket_name_getter.outputs.bucket_name }}/${{ steps.run_id_getter_unix.outputs.value }}${{ steps.run_id_getter_win.outputs.value }}/${{ inputs.name }}/*" "${{ steps.path_converter_unix.outputs.value }}${{ steps.path_converter_win.outputs.value }}"
 
       #/OS
       - name: "Unzip all .zip files if asked [UNIX]"
