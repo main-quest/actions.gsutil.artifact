@@ -34,7 +34,7 @@ runs:
 
       #/OS
       - name: "Make dirs if they don't exist [UNIX]"
-        if: runner.os != "Windows"
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           s="${{ github.action_path }}/make_dirs.sh"
@@ -43,7 +43,7 @@ runs:
           "$s" "$p"
 
       - name: "Make dirs if they don't exist [WIN]"
-        if: runner.os == "Windows"
+        if: runner.os == 'Windows'
         shell: wsl bash --noprofile --norc -euo pipefail "$(s="$(wslpath '{0}')" && sed -i 's/\r$//' "$s" && echo "$s")"
         run: |
           s=$(wslpath "${{ github.action_path }}/make_dirs.sh")
@@ -55,7 +55,7 @@ runs:
       #/OS
       - name: "Get run id [UNIX]"
         id: run_id_getter_unix
-        if: runner.os != "Windows"
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           run_id="${{ inputs.run_id }}"
@@ -66,7 +66,7 @@ runs:
 
       - name: "Get run id [WIN]"
         id: run_id_getter_win
-        if: runner.os == "Windows"
+        if: runner.os == 'Windows'
         shell: wsl bash --noprofile --norc -euo pipefail "$(s="$(wslpath '{0}')" && sed -i 's/\r$//' "$s" && echo "$s")"
         run: |
           run_id="${{ inputs.run_id }}"
@@ -83,13 +83,13 @@ runs:
 
       #/OS
       - name: "Unzip all .zip files if asked [UNIX]"
-        if: runner.os != "Windows" && ${{ inputs.unzip == 'true' }}
+        if: runner.os != 'Windows' && ${{ inputs.unzip == 'true' }}
         shell: bash
         working-directory: ${{ inputs.path }}
         run: unzip *.zip
 
       - name: "Unzip all .zip files if asked [WIN]"
-        if: runner.os == "Windows" && ${{ inputs.unzip == 'true' }}
+        if: runner.os == 'Windows' && ${{ inputs.unzip == 'true' }}
         shell: powershell
         working-directory: ${{ inputs.path }}
         run: Expand-Archive *.zip
