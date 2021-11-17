@@ -32,37 +32,30 @@ runs:
         with:
           bucket: ${{ inputs.bucket }}
 
-      - name: "Make dirs if they don't exist"
+      #/OS
+      - name: "Make dirs if they don't exist [UNIX]"
+        if: runner.os != "Windows"
         shell: bash
         run: |
-          d="${{ inputs.path }}"
-          
-          # Check for asterisks in path, as per https://stackoverflow.com/a/1193682
-          echo "Making sure the destination dirs exist"
-          if echo x"$d" | grep '*' > /dev/null; then
-              echo "Destination contains asterisks. Not proceeding with folder auto-creation, just to be safe. If the folder doesn't exist, make sure you create it beforehand"
-          else
-            # Double brackets to allow * as regex
-            if [[ $d == */ ]]; then
-              echo "Destination ends with '/' - creating folder if doesn't exist"
-              mkdir -p "$d"
-            else
-              if [[ $d == *. ]]; then
-                echo "Destination ends with dots. Not proceeding with folder auto-creation, just to be safe. If the folder doesn't exist, make sure you create it beforehand"
-              else
-                pd=$(dirname "$d")
-                if [[ $pd == *. ]]; then
-                  echo "Destination parent dir ends with dots. Not proceeding with folder auto-creation, just to be safe. If the folder doesn't exist, make sure you create it beforehand"
-                else
-                  echo "Creating parent folder of destination if doesn't exist"
-                  mkdir -p "$pd"
-                fi
-              fi
-            fi
-          fi
+          s="${{ github.action_path }}/make_dirs.sh"
+          p="${{ inputs.path }}"
+          chmod +x "$s"
+          "$s" "$p"
 
-      - name: Get run id
-        id: run_id_getter
+      - name: "Make dirs if they don't exist [WIN]"
+        if: runner.os == "Windows"
+        shell: wsl bash --noprofile --norc -euo pipefail "$(s="$(wslpath '{0}')" && sed -i 's/\r$//' "$s" && echo "$s")"
+        run: |
+          s=$(wslpath "${{ github.action_path }}/make_dirs.sh")
+          p=$(wslpath "${{ inputs.path }}")
+          chmod +x "$s"
+          "$s" "$p"
+      #OS/
+
+      #/OS
+      - name: "Get run id [UNIX]"
+        id: run_id_getter_unix
+        if: runner.os != "Windows"
         shell: bash
         run: |
           run_id="${{ inputs.run_id }}"
@@ -71,13 +64,33 @@ runs:
           fi
           echo "::set-output name=value::$run_id"
 
-      - uses: main-quest/actions.gsutil@v0.0.11
+      - name: "Get run id [WIN]"
+        id: run_id_getter_win
+        if: runner.os == "Windows"
+        shell: wsl bash --noprofile --norc -euo pipefail "$(s="$(wslpath '{0}')" && sed -i 's/\r$//' "$s" && echo "$s")"
+        run: |
+          run_id="${{ inputs.run_id }}"
+          if [ -z "$run_id" ]; then
+            run_id="${{ github.run_id }}"
+          fi
+          echo "::set-output name=value::$run_id"
+      #OS/
+
+      - uses: main-quest/actions.gsutil@master
         with:
           key: ${{ inputs.key }}
-          do: -m cp -r "gs://${{ steps.bucket_name_getter.outputs.bucket_name }}/${{ steps.run_id_getter.outputs.value }}/${{ inputs.name }}/*" "${{ inputs.path }}"
+          do: -m cp -r "gs://${{ steps.bucket_name_getter.outputs.bucket_name }}/${{ steps.run_id_getter_unix.outputs.value }}${{ steps.run_id_getter_win.outputs.value }}/${{ inputs.name }}/*" "${{ inputs.path }}"
 
-      - name: Unzip all .zip files if asked to
-        if: ${{ inputs.unzip == 'true' }}
+      #/OS
+      - name: "Unzip all .zip files if asked [UNIX]"
+        if: runner.os != "Windows" && ${{ inputs.unzip == 'true' }}
         shell: bash
         working-directory: ${{ inputs.path }}
         run: unzip *.zip
+
+      - name: "Unzip all .zip files if asked [WIN]"
+        if: runner.os == "Windows" && ${{ inputs.unzip == 'true' }}
+        shell: powershell
+        working-directory: ${{ inputs.path }}
+        run: Expand-Archive *.zip
+      #OS/
