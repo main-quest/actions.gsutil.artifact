@@ -101,13 +101,13 @@ runs:
 
       #/OS
       - name: "Unzip all .zip files if asked [UNIX]"
-        if: runner.os != 'Windows' && ${{ inputs.unzip == 'true' }}
+        if: runner.os != 'Windows' && inputs.unzip == 'true'
         shell: bash
         working-directory: ${{ inputs.path }}
         run: unzip *.zip
 
       - name: "Unzip all .zip files if asked [WIN]"
-        if: runner.os == 'Windows' && ${{ inputs.unzip == 'true' }}
+        if: runner.os == 'Windows' && inputs.unzip == 'true'
         shell: powershell
         working-directory: ${{ inputs.path }}
         run: Expand-Archive *.zip
