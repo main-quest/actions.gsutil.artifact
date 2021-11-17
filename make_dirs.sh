@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 d="$1"
 
 # Check for asterisks in path, as per https://stackoverflow.com/a/1193682
