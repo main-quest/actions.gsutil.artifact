@@ -21,7 +21,7 @@ inputs:
   unzip:
     description: "Unzip all zip files found in the destination. Note that this is just a post-download step, and no files are removed (only replaced, in case archives contain multiple files with same relative paths)"
     required: false
-    default: false
+    default: 'false'
     
 runs:
   using: "composite"

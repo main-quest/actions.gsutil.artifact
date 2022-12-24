@@ -15,7 +15,7 @@ else
         mkdir -p "$d"
     else
         if [[ $d == *. ]]; then
-        echo "Destination ends with dots. Not proceeding with folder auto-creation, just to be safe. If the folder doesn't exist, make sure you create it beforehand"
+            echo "Destination ends with dots. Not proceeding with folder auto-creation, just to be safe. If the folder doesn't exist, make sure you create it beforehand"
         else
             pd=$(dirname "$d")
             if [[ $pd == *. ]]; then
