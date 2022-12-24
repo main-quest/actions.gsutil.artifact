@@ -44,12 +44,29 @@ runs:
 
       - name: "Make dirs if they don't exist [WIN]"
         if: runner.os == 'Windows'
-        shell: wsl bash --noprofile --norc -euo pipefail "$(s="$(wslpath '{0}')" && sed -i 's/\r$//' "$s" && echo "$s")"
+        # shell: wsl bash --noprofile --norc -euo pipefail "$(s="$(wslpath '{0}')" && sed -i 's/\r$//' "$s" && echo "$s")"
+        # run: |
+        #   s=$(wslpath "${{ github.action_path }}/make_dirs.sh")
+        #   p=$(wslpath "${{ inputs.path }}")
+        #   chmod +x "$s"
+        #   "$s" "$p"
+        shell: powershell
         run: |
-          s=$(wslpath "${{ github.action_path }}/make_dirs.sh")
-          p=$(wslpath "${{ inputs.path }}")
-          chmod +x "$s"
-          "$s" "$p"
+          $s="$(wsl bash --noprofile --norc -euo pipefail -c 'wslpath ''${{ github.action_path }}/make_dirs.sh''')"
+          echo "Script debug: $s"
+          wsl bash --noprofile --norc -euo pipefail -c "chmod +x '$s'"
+          wsl bash --noprofile --norc -euo pipefail -c "sed -i 's/\r`$//' '$s'"
+          
+          $p="$(wsl bash --noprofile --norc -euo pipefail -c 'wslpath ''${{ inputs.path }}''')"
+
+          $cmd = 'export GITHUB_OUTPUT="$(wslpath '''
+          $cmd += "$env:GITHUB_OUTPUT"
+          $cmd += ''')"'
+          $cmd += " && '$s'"
+          $cmd += ' '''
+          $cmd += "$p"
+          $cmd += ''''
+          wsl bash --noprofile --norc -euo pipefail -c "$cmd"
       #OS/
 
       #/OS
@@ -60,16 +77,20 @@ runs:
         run: |
           p="${{ inputs.path }}"
           # echo "::set-output name=value::$p"
-          echo "value=$p" >> $GITHUB_OUTPUT
+          echo "value=$p" >> "$GITHUB_OUTPUT"
 
       - name: "Convert path [WIN]"
         id: path_converter_win
         if: runner.os == 'Windows'
-        shell: wsl bash --noprofile --norc -euo pipefail "$(s="$(wslpath '{0}')" && sed -i 's/\r$//' "$s" && echo "$s")"
+        # shell: wsl bash --noprofile --norc -euo pipefail "$(s="$(wslpath '{0}')" && sed -i 's/\r$//' "$s" && echo "$s")"
+        # run: |
+        #   p=$(wslpath "${{ inputs.path }}")
+        #   # echo "::set-output name=value::$p"
+        #   echo "value=$p" >> "$env:GITHUB_OUTPUT"
+        shell: powershell
         run: |
-          p=$(wslpath "${{ inputs.path }}")
-          # echo "::set-output name=value::$p"
-          echo "value=$p" >> $env:GITHUB_OUTPUT
+          $p="$(wsl bash --noprofile --norc -euo pipefail -c 'wslpath ''${{ inputs.path }}''')"
+          echo "value=$p" >> "$env:GITHUB_OUTPUT"
       #OS/
 
       #/OS
@@ -83,19 +104,27 @@ runs:
             run_id="${{ github.run_id }}"
           fi
           # echo "::set-output name=value::$run_id"
-          echo "value=$run_id" >> $GITHUB_OUTPUT
+          echo "value=$run_id" >> "$GITHUB_OUTPUT"
 
       - name: "Get run id [WIN]"
         id: run_id_getter_win
         if: runner.os == 'Windows'
-        shell: wsl bash --noprofile --norc -euo pipefail "$(s="$(wslpath '{0}')" && sed -i 's/\r$//' "$s" && echo "$s")"
+        # shell: wsl bash --noprofile --norc -euo pipefail "$(s="$(wslpath '{0}')" && sed -i 's/\r$//' "$s" && echo "$s")"
+        # run: |
+        #   run_id="${{ inputs.run_id }}"
+        #   if [ -z "$run_id" ]; then
+        #     run_id="${{ github.run_id }}"
+        #   fi
+        #   # echo "::set-output name=value::$run_id"
+        #   echo "value=$run_id" >> "$env:GITHUB_OUTPUT"
+        shell: powershell
         run: |
-          run_id="${{ inputs.run_id }}"
-          if [ -z "$run_id" ]; then
-            run_id="${{ github.run_id }}"
-          fi
-          # echo "::set-output name=value::$run_id"
-          echo "value=$run_id" >> $env:GITHUB_OUTPUT
+          $run_id="${{ inputs.run_id }}"
+          if (-not $run_id)
+          {
+            $run_id="${{ github.run_id }}"
+          }
+          echo "value=$run_id" >> "$env:GITHUB_OUTPUT"
       #OS/
 
       - uses: main-quest/actions.gsutil@master
