@@ -130,7 +130,7 @@ runs:
       - uses: main-quest/actions.gsutil@master
         with:
           key: ${{ inputs.key }}
-          do: -m cp -r "gs://${{ steps.bucket_name_getter.outputs.bucket_name }}/${{ steps.run_id_getter_unix.outputs.value }}${{ steps.run_id_getter_win.outputs.value }}/${{ inputs.name }}/*" "${{ steps.path_converter_unix.outputs.value }}${{ steps.path_converter_win.outputs.value }}"
+          do: -m cp -r gs://${{ steps.bucket_name_getter.outputs.bucket_name }}/${{ steps.run_id_getter_unix.outputs.value }}${{ steps.run_id_getter_win.outputs.value }}/${{ inputs.name }}/* "${{ steps.path_converter_unix.outputs.value }}${{ steps.path_converter_win.outputs.value }}"
 
       #/OS
       - name: "Unzip all .zip files if asked [UNIX]"
